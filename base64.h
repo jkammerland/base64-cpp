@@ -96,7 +96,7 @@ base64_decode(const std::array<unsigned char, 44> &input) {
 }
 
 template <size_t N>
-std::string_view make_sha256_view(const std::array<unsigned char, N> &input) {
+std::string_view make_sha_view(const std::array<unsigned char, N> &input) {
   return std::string_view(reinterpret_cast<const char *>(input.data()),
                           input.size());
 }

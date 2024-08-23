@@ -58,14 +58,14 @@ TEST_CASE("base64_decode array") {
   CHECK(base64_decode(input) == expected);
 }
 
-TEST_CASE("make_sha256_view") {
+TEST_CASE("make_sha_view") {
 
   std::array<unsigned char, 32> input = {
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,
       0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
       0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F};
 
-  std::string_view result = make_sha256_view(input);
+  std::string_view result = make_sha_view(input);
   CHECK(result.size() == 32);
   CHECK(std::memcmp(result.data(), input.data(), 32) == 0);
 }
@@ -156,8 +156,8 @@ TEST_CASE("Round-trip: encode then decode array") {
   auto encoded = base64_encode(original);
   auto decoded = base64_decode(encoded);
 
-  auto view1 = make_sha256_view(original);
-  auto view2 = make_sha256_view(decoded);
+  auto view1 = make_sha_view(original);
+  auto view2 = make_sha_view(decoded);
 
   CHECK(view1 == view2.substr(0, 32));
 }
