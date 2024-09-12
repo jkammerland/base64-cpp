@@ -33,3 +33,9 @@ target_link_libraries(test_sha256 PRIVATE fmt::fmt OpenSSL::SSL OpenSSL::Crypto 
 target_compile_options(test_sha256 PRIVATE -fsanitize=address)
 target_link_options(test_sha256 PRIVATE -fsanitize=address)
 add_test(NAME test_sha256 COMMAND run_test_sha256)
+
+add_executable(test_asn1 rs_to_der.cpp)
+target_include_directories(test_asn1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_asn1 PRIVATE fmt::fmt OpenSSL::SSL OpenSSL::Crypto gtest_main)
+target_compile_options(test_asn1 PRIVATE -fsanitize=address)
+target_link_options(test_asn1 PRIVATE -fsanitize=address)
