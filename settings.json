@@ -1,0 +1,17 @@
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "path": "/usr/bin/clangd",
+        "args": ["--compile-commands-dir=./build/"]
+      }
+    }
+  },
+  "assistant": {
+    "version": "1",
+    "provider": {
+      "default_model": "claude-3-5-sonnet",
+      "name": "zed.dev"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <openssl/asn1t.h>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
@@ -36,6 +37,7 @@ ASN1_SEQUENCE(ECDSA_SIG_ST) = {ASN1_SIMPLE(ECDSA_SIG_ST, r, BIGNUM), ASN1_SIMPLE
 
     sig->r = r;
     sig->s = s;
+
 
     unsigned char *seq = nullptr;
     *seq_len           = i2d_ECDSA_SIG_ST(sig, &seq);

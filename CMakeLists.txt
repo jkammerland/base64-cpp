@@ -1,12 +1,13 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.14...3.28)
 
 project(test_base64 CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -fno-omit-frame-pointer")
 
 include(FetchContent)
@@ -37,5 +38,23 @@ add_test(NAME test_sha256 COMMAND run_test_sha256)
 add_executable(test_asn1 rs_to_der.cpp)
 target_include_directories(test_asn1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_asn1 PRIVATE fmt::fmt OpenSSL::SSL OpenSSL::Crypto gtest_main)
-target_compile_options(test_asn1 PRIVATE -fsanitize=address)
-target_link_options(test_asn1 PRIVATE -fsanitize=address)
+if(MSVC)
+  target_compile_options(test_asn1 PRIVATE /fsanitize=address)
+  target_link_options(test_asn1 PRIVATE /fsanitize=address)
+else()
+  target_compile_options(test_asn1 PRIVATE -fsanitize=address)
+  target_link_options(test_asn1 PRIVATE -fsanitize=address)
+endif()
+add_test(NAME test_asn1 COMMAND run_test_asn1)
+
+FetchContent_Declare(
+  doctest
+  GIT_REPOSITORY https://github.com/doctest/doctest.git
+  GIT_TAG v2.4.11)
+FetchContent_MakeAvailable(doctest)
+
+add_executable(test_crypto0 test_crypto0.cpp)
+target_include_directories(test_crypto0 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_crypto0 PRIVATE fmt::fmt OpenSSL::SSL OpenSSL::Crypto doctest)
+target_compile_options(test_crypto0 PRIVATE -fsanitize=address)
+target_link_options(test_crypto0 PRIVATE -fsanitize=address)
