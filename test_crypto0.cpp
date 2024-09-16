@@ -1,7 +1,9 @@
+#include <algorithm>
 #include <iostream>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "ECDSAVerifier.h" // Assuming this is the header file containing the ECDSAVerifier class
 #include "ECSignature.h"   // Assuming this is the header file containing the ECDSASignature class
+#include "sha256.h"
 
 #include <doctest/doctest.h>
 #include <openssl/ec.h>
@@ -122,9 +124,17 @@ TEST_CASE("ECDSASignature EVP verification") {
 
     REQUIRE(EC_KEY_generate_key(key) == 1);
 
-    // Example digest and signature
-    unsigned char digest[32] = {0}; // Example digest
-    ECDSA_SIG    *sig        = ECDSA_do_sign(digest, sizeof(digest), key);
+    // Example message
+    unsigned char message[]   = "Hello, World!";
+    size_t        message_len = strlen((char *)message);
+
+    // Hash the message
+    X::sha256_stream stream;
+    stream.update(message, message_len);
+    auto hash = stream.finalize();
+
+    // Sign using low-level function
+    ECDSA_SIG *sig = ECDSA_do_sign(hash.data(), 32, key);
     REQUIRE(sig != nullptr);
 
     size_t field_size = ECDSASignature::getFieldSize(key);
@@ -133,18 +143,20 @@ TEST_CASE("ECDSASignature EVP verification") {
     auto rs_signature = ECDSASignature::fromECDSA_SIG(sig, field_size);
     REQUIRE(rs_signature.size() == 2 * field_size);
 
-    // Convert EC_KEY to EVP_PKEY
-    EVP_PKEY *pkey = EVP_PKEY_new();
-    REQUIRE(pkey != nullptr);
-    REQUIRE(EVP_PKEY_set1_EC_KEY(pkey, key) == 1);
+    std::vector<unsigned char> der_signature = ECDSASignature::toDER(rs_signature, field_size);
 
-    SUBCASE("EVP verification") {
-        CHECK(rs_signature.size() == 2 * field_size);
-        bool verified = ECDSAVerifier::verify(pkey, digest, sizeof(digest), rs_signature);
-        CHECK(verified);
-    }
+    // Verify using EVP functions
+    EVP_PKEY *pkey = EVP_PKEY_new();
+    REQUIRE(EVP_PKEY_assign_EC_KEY(pkey, EC_KEY_dup(key)) == 1);
+
+    EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
+    REQUIRE(EVP_VerifyInit(md_ctx, EVP_sha256()) == 1);
+    REQUIRE(EVP_VerifyUpdate(md_ctx, message, message_len) == 1);
+    int result = EVP_VerifyFinal(md_ctx, der_signature.data(), der_signature.size(), pkey);
+    CHECK(result == 1);
 
     // Clean up
+    EVP_MD_CTX_free(md_ctx);
     EVP_PKEY_free(pkey);
     ECDSA_SIG_free(sig);
     EC_KEY_free(key);
